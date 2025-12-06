@@ -398,12 +398,7 @@ const toggleItemPosition = async (id) => {
 
       {/* Панель управления */}
       <div className="control-panel">
-        <button 
-          onClick={toggleDoor} 
-          className={`door-btn ${isOpen ? 'close' : 'open'}`}
-        >
-          {isOpen ? 'Закрыть холодильник' : 'Открыть холодильник'}
-        </button>
+
         
         <div className="add-item-form">
           <input
@@ -411,9 +406,15 @@ const toggleItemPosition = async (id) => {
             value={newItemName}
             onChange={(e) => setNewItemName(e.target.value)}
             onKeyUp ={handleKeyPress}
-            placeholder="Введите название продукта"
-            maxLength={50}
+            placeholder="Enter product name"
+            maxLength={60}
           />
+                            <button 
+          onClick={toggleDoor} 
+          className={`${isOpen ? 'close' : 'open'}`}
+        >
+          {isOpen ? 'Закрыть холодильник' : 'Открыть холодильник'}
+        </button>
           <button onClick={addItem}>
             Добавить в базу
           </button>

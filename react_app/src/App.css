@@ -33,7 +33,7 @@
 /* Стили холодильника */
 .fridge {
   width: 400px;
-  height: 500px;
+  height: 350px;
   background: linear-gradient(135deg, #ffffff 0%, #8b8b8b 100%);
   border: 3px solid #999;
   border-radius: 15px;
@@ -211,7 +211,6 @@
 .add-item-form {
   display: flex;
   gap: 5px;
-  width: 100%;
   margin-top: 5px;
 }
 
@@ -225,7 +224,7 @@
 
 .add-item-form button {
   padding: 10px 20px;
-  background: #2196F3;
+  background: #0f226c;
   color: white;
   border: none;
   border-radius: 5px;
@@ -235,12 +234,12 @@
 }
 
 .add-item-form button:hover {
-  background: #1976D2;
+  background: #0f226c;
 }
 
 .outside-items {
   width: 400px;
-  min-height: 500px;
+  height: 350px;
   padding: 5px;
   background: whitesmoke;
   border-radius: 10px;
@@ -262,11 +261,9 @@
 }
 
 .error-message {
-  background: #ffebee;
-  color: #c62828;
-  padding: 20px 20px;
+  background: #ffffff;
+  padding: 15px 20px;
   border-radius: 5px;
-  border: 1px solid #ffcdd2;
   margin: 5px auto;
   max-width: 400px;
   display: flex;
@@ -278,7 +275,6 @@
 .error-close {
   background: none;
   border: none;
-  color: #c62828;
   font-size: 20px;
   cursor: pointer;
   padding: 0;
@@ -319,6 +315,8 @@
   .outside-items {
     min-height: auto;
     order: 2;
+    width: 300px;
+    padding: 15px;
   }
   
   .fridge {
@@ -329,12 +327,7 @@
 @media (max-width: 768px) {
   .fridge {
     width: 300px;
-    height: 500px;
-  }
-  
-  .outside-items {
-    width: 300px;
-    padding: 15px;
+    height: 350px;
   }
   
   .add-item-form {
@@ -354,12 +347,9 @@
 @media (max-width: 480px) {
   .fridge {
     width: 280px;
-    height: 450px;
+    height: 400px;
   }
   
-  .outside-items {
-    width: 280px;
-  }
   
   .items-grid {
     grid-template-columns: repeat(2, 1fr);

@@ -10,8 +10,13 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #ffffff 0%, #000000 100%);
+  
+  /* Основной фон - тёмно-синий градиент */
+  background: linear-gradient(135deg, #000000 0%, #1e3799 50%, #4a69bd 100%);
   min-height: 100vh;
+  
+  /* Улучшенная поддержка тёмной темы */
+  color: #333;
 }
 
 #root {
@@ -19,4 +24,5 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 20px;
 }
