@@ -236,8 +236,6 @@ const toggleItemPosition = async (id) => {
 
   return (
     <div className="fridge-app">
-      <h1>Холодильник</h1>
-      
       {error && (
         <div className="error-message">
           <span>{error}</span>
