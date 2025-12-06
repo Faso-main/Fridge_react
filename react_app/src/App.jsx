@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import './App.css';
-import './Search_panel.css';
+import './css/App.css';
+import './css/Search_panel.css';
 
 const Fridge = () => {
   const [isOpen, setIsOpen] = useState(false);
