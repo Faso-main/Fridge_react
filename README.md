@@ -4,6 +4,7 @@
 ![решение в продакшене](readme/prod.png)
 ## Архитектура
 
+
 - **Frontend**: React SPA
 - **Backend**: Python FastAPI 
 - **Database**: PostgreSQL
