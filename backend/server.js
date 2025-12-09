@@ -10,13 +10,34 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// Конфигурация подключения к PostgreSQL
 const pool = new Pool({
-  user: 'fridge_user',
-  host: 'localhost',
-  database: 'fridge_db',
-  password: '1234',
-  port: 5432,
+  user: process.env.DB_USER || 'fridge_user',
+  host: process.env.DB_HOST || 'localhost',
+  database: process.env.DB_NAME || 'fridge_db',
+  password: process.env.DB_PASSWORD || '1234',
+  port: parseInt(process.env.DB_PORT) || 5432,
+  // Параметры для Docker
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 });
+
+// Проверка подключения к базе данных
+const checkConnection = async () => {
+  let retries = 5;
+  while (retries) {
+    try {
+      await pool.query('SELECT NOW()');
+      console.log('Подключение к базе данных установлено');
+      break;
+    } catch (err) {
+      console.log(`Ошибка подключения к базе данных. Повторная попытка через 5 секунд... (${retries} попыток осталось)`);
+      retries -= 1;
+      await new Promise(res => setTimeout(res, 5000));
+    }
+  }
+};
 
 // Create table
 const createTable = async () => {
@@ -31,36 +52,55 @@ const createTable = async () => {
   
   try {
     await pool.query(query);
-    console.log('Table ready');
+    console.log('Таблица fridge_items готова');
   } catch (err) {
-    console.error('Error creating table:', err);
+    console.error('Ошибка создания таблицы:', err.message);
   }
 };
 
-createTable();
+// Инициализация
+const initializeApp = async () => {
+  await checkConnection();
+  await createTable();
+  
+  app.listen(port, () => {
+    console.log(`Сервер запущен на http://localhost:${port}`);
+  });
+};
 
-// API Routes
+// Обработка ошибок базы данных
+pool.on('error', (err) => {
+  console.error('Неожиданная ошибка базы данных:', err.message);
+});
 
 // Health check
 app.get('/api/health', async (req, res) => {
   try {
     await pool.query('SELECT 1');
-    res.json({ status: 'OK', database: 'connected' });
+    res.json({ 
+      status: 'OK', 
+      database: 'connected',
+      timestamp: new Date().toISOString()
+    });
   } catch (error) {
-    res.status(500).json({ status: 'ERROR', database: 'disconnected' });
+    res.status(500).json({ 
+      status: 'ERROR', 
+      database: 'disconnected',
+      error: error.message 
+    });
   }
 });
 
-// GET all items - ЭТОГО ЭНДПОИНТА НЕ БЫЛО!
+// GET all items
 app.get('/api/items', async (req, res) => {
   try {
     console.log('GET /api/items - получение всех продуктов');
     const result = await pool.query('SELECT * FROM fridge_items ORDER BY created_at DESC');
-    console.log(`Найдено продуктов: ${result.rows.length}`);
+    console.log(`✅ Найдено продуктов: ${result.rows.length}`);
     res.json(result.rows);
   } catch (err) {
-    console.error('Ошибка при получении продуктов:', err);
-    res.status(500).json({ error: 'Database error' });
+    console.error('Ошибка при получении продуктов:', err.message);
+    res.status(500).json({ error: 'Database error', details: err.message });
   }
 });
 
@@ -79,11 +119,11 @@ app.post('/api/items', async (req, res) => {
       [name.trim(), isInFridge ?? true]
     );
     
-    console.log('Продукт добавлен:', result.rows[0]);
+    console.log('Продукт добавлен:', result.rows[0].name);
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error('Ошибка при добавлении:', err);
-    res.status(500).json({ error: 'Database error' });
+    console.error('Ошибка при добавлении:', err.message);
+    res.status(500).json({ error: 'Database error', details: err.message });
   }
 });
 
@@ -102,11 +142,11 @@ app.patch('/api/items/:id/toggle', async (req, res) => {
       return res.status(404).json({ error: 'Item not found' });
     }
     
-    console.log('Позиция переключена:', result.rows[0]);
+    console.log('✅ Позиция переключена:', result.rows[0].name);
     res.json(result.rows[0]);
   } catch (err) {
-    console.error('Ошибка при переключении:', err);
-    res.status(500).json({ error: 'Database error' });
+    console.error('Ошибка при переключении:', err.message);
+    res.status(500).json({ error: 'Database error', details: err.message });
   }
 });
 
@@ -122,14 +162,27 @@ app.delete('/api/items/:id', async (req, res) => {
       return res.status(404).json({ error: 'Item not found' });
     }
     
-    console.log('Продукт удален:', result.rows[0]);
+    console.log('Продукт удален:', result.rows[0].name);
     res.json({ message: 'Item deleted', deletedItem: result.rows[0] });
   } catch (err) {
-    console.error('Ошибка при удалении:', err);
-    res.status(500).json({ error: 'Database error' });
+    console.error('Ошибка при удалении:', err.message);
+    res.status(500).json({ error: 'Database error', details: err.message });
   }
 });
 
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+// Обработка несуществующих маршрутов
+app.use('*', (req, res) => {
+  res.status(404).json({ error: 'Route not found' });
+});
+
+// Обработка глобальных ошибок
+app.use((err, req, res, next) => {
+  console.error('Глобальная ошибка:', err.stack);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+// Запуск инициализации
+initializeApp().catch(err => {
+  console.error('Не удалось запустить приложение:', err);
+  process.exit(1);
 });

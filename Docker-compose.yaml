@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: fridge_user
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: fridge_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: fridge_user
+      DB_PASSWORD: 1234
+      DB_NAME: fridge_db
+    depends_on:
+      - postgres
+
+  python-backend:
+    build: ./py_back
+    ports:
+      - "8000:8000"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: fridge_user
+      DB_PASSWORD: 1234
+      DB_NAME: fridge_db
+    depends_on:
+      - postgres
+
+  frontend:
+    build: ./react_app
+    ports:
+      - "3000:3000"
+
+  # Опционально - nginx если нужен
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./react_app/dist:/usr/share/nginx/html
+    depends_on:
+      - frontend
+      - backend
+      - python-backend
+
+volumes:
+  postgres_data:
